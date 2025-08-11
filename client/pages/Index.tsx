@@ -1,11 +1,30 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/Header";
+import { AuthModal } from "@/components/AuthModal";
+import { useAuth } from "@/contexts/AuthContext";
 import { ArrowRight, Code2, Trophy, Brain, Users, Clock, Target } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Index() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+
+  const handleGetStarted = () => {
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      setAuthModalOpen(true);
+    }
+  };
+
+  const handleViewDemo = () => {
+    navigate('/quizzes');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-brand-purple-50">
       <Header />
@@ -23,11 +42,11 @@ export default function Index() {
               Challenge yourself with hackathons and quizzes. Test your knowledge, compete with peers, and accelerate your learning journey.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
-              <Button size="lg" className="bg-gradient-to-r from-brand-purple-600 to-brand-pink-600 hover:from-brand-purple-700 hover:to-brand-pink-700">
+              <Button size="lg" className="bg-gradient-to-r from-brand-purple-600 to-brand-pink-600 hover:from-brand-purple-700 hover:to-brand-pink-700" onClick={handleGetStarted}>
                 Get Started
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <Button variant="outline" size="lg" className="border-brand-purple-200 text-brand-purple-700 hover:bg-brand-purple-50">
+              <Button variant="outline" size="lg" className="border-brand-purple-200 text-brand-purple-700 hover:bg-brand-purple-50" onClick={handleViewDemo}>
                 View Demo
               </Button>
             </div>
@@ -118,7 +137,7 @@ export default function Index() {
               Join thousands of students who are already improving their skills through our platform.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
-              <Button size="lg" className="bg-gradient-to-r from-brand-purple-600 to-brand-pink-600 hover:from-brand-purple-700 hover:to-brand-pink-700">
+              <Button size="lg" className="bg-gradient-to-r from-brand-purple-600 to-brand-pink-600 hover:from-brand-purple-700 hover:to-brand-pink-700" onClick={handleGetStarted}>
                 Start Learning Today
               </Button>
             </div>
@@ -141,6 +160,12 @@ export default function Index() {
           </div>
         </div>
       </footer>
+
+      <AuthModal
+        open={authModalOpen}
+        onOpenChange={setAuthModalOpen}
+        defaultTab="signup"
+      />
     </div>
   );
 }
