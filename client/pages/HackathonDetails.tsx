@@ -12,14 +12,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/AuthContext";
 import { Hackathon, Submission } from "@shared/types";
-import { 
-  Calendar, 
-  Clock, 
-  Users, 
-  Trophy, 
-  Code2, 
-  ExternalLink, 
-  GitHub, 
+import {
+  Calendar,
+  Clock,
+  Users,
+  Trophy,
+  Code2,
+  ExternalLink,
+  Github,
   Upload,
   CheckCircle,
   AlertCircle,
