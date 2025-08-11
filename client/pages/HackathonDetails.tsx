@@ -329,7 +329,7 @@ export default function HackathonDetails() {
                         <div className="flex gap-2">
                           <Button variant="outline" size="sm" asChild>
                             <a href={submission.githubUrl} target="_blank" rel="noopener noreferrer">
-                              <GitHub className="h-4 w-4 mr-1" />
+                              <Github className="h-4 w-4 mr-1" />
                               Code
                             </a>
                           </Button>
