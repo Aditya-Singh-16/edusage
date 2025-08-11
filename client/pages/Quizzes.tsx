@@ -1,10 +1,63 @@
+import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Brain, BookOpen, Clock, Star } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Quiz } from "@shared/types";
+import { Brain, BookOpen, Clock, Star, Play } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Quizzes() {
+  const { user } = useAuth();
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchQuizzes();
+  }, []);
+
+  const fetchQuizzes = async () => {
+    try {
+      const response = await fetch('/api/quizzes');
+      if (response.ok) {
+        const data = await response.json();
+        setQuizzes(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching quizzes:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'Beginner':
+        return 'bg-green-100 text-green-700';
+      case 'Intermediate':
+        return 'bg-yellow-100 text-yellow-700';
+      case 'Advanced':
+        return 'bg-red-100 text-red-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-brand-blue-50">
+        <Header />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading quizzes...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-brand-blue-50">
       <Header />
@@ -20,30 +73,16 @@ export default function Quizzes() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-          {[
-            { title: "JavaScript Fundamentals", difficulty: "Beginner", questions: 25, time: "30 min", rating: 4.8 },
-            { title: "React & Hooks", difficulty: "Intermediate", questions: 40, time: "45 min", rating: 4.9 },
-            { title: "System Design", difficulty: "Advanced", questions: 15, time: "60 min", rating: 4.7 },
-            { title: "Data Structures", difficulty: "Intermediate", questions: 35, time: "50 min", rating: 4.6 },
-            { title: "Machine Learning", difficulty: "Advanced", questions: 20, time: "40 min", rating: 4.8 },
-            { title: "CSS & Styling", difficulty: "Beginner", questions: 30, time: "25 min", rating: 4.5 },
-          ].map((quiz, i) => (
-            <Card key={i} className="hover:shadow-lg transition-shadow">
+          {quizzes.map((quiz) => (
+            <Card key={quiz.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <Badge 
-                    variant="secondary" 
-                    className={`${
-                      quiz.difficulty === 'Beginner' ? 'bg-green-100 text-green-700' :
-                      quiz.difficulty === 'Intermediate' ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-red-100 text-red-700'
-                    }`}
-                  >
+                  <Badge variant="secondary" className={getDifficultyColor(quiz.difficulty)}>
                     {quiz.difficulty}
                   </Badge>
                   <div className="flex items-center text-sm text-gray-500">
                     <Star className="h-4 w-4 mr-1 fill-yellow-400 text-yellow-400" />
-                    {quiz.rating}
+                    4.8
                   </div>
                 </div>
                 <CardTitle className="flex items-center gap-2">
@@ -51,27 +90,67 @@ export default function Quizzes() {
                   {quiz.title}
                 </CardTitle>
                 <CardDescription>
-                  Comprehensive assessment covering key concepts and practical applications.
+                  {quiz.description}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                  <div className="flex items-center gap-1">
-                    <BookOpen className="h-4 w-4" />
-                    {quiz.questions} questions
+                <div className="space-y-3 mb-4">
+                  <div className="flex items-center justify-between text-sm text-gray-600">
+                    <div className="flex items-center gap-1">
+                      <BookOpen className="h-4 w-4" />
+                      {quiz.questions.length} questions
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      {quiz.timeLimit} min
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    {quiz.time}
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Passing Score</span>
+                    <span className="font-medium">{quiz.passingScore}%</span>
                   </div>
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Total Points</span>
+                    <span className="font-medium text-brand-blue-600">{quiz.totalPoints}</span>
+                  </div>
+                  
+                  <Badge variant="outline" className="w-fit">
+                    {quiz.category}
+                  </Badge>
                 </div>
-                <Button className="w-full bg-gradient-to-r from-brand-blue-600 to-brand-purple-600 hover:from-brand-blue-700 hover:to-brand-purple-700">
-                  Start Quiz
-                </Button>
+
+                {user ? (
+                  <Button 
+                    asChild
+                    className="w-full bg-gradient-to-r from-brand-blue-600 to-brand-purple-600 hover:from-brand-blue-700 hover:to-brand-purple-700"
+                  >
+                    <Link to={`/quiz/${quiz.id}`}>
+                      <Play className="h-4 w-4 mr-2" />
+                      Start Quiz
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button 
+                    disabled
+                    className="w-full"
+                  >
+                    Sign in to take quiz
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ))}
         </div>
+
+        {quizzes.length === 0 && !loading && (
+          <div className="text-center py-12">
+            <Brain className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No quizzes available</h3>
+            <p className="text-gray-600">Check back later for new quizzes!</p>
+          </div>
+        )}
 
         <div className="mt-12 text-center">
           <Card className="bg-gradient-to-r from-brand-blue-50 to-brand-purple-50 border-brand-blue-200">
